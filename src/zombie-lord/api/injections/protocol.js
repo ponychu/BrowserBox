@@ -40,14 +40,13 @@
         if ( typeof binding == "function" ) {
           delete self[BINDING_NAME];
           const Binding = {
-            send: msg => {
+            _send: msg => {
               try {
                 return binding(JSON.stringify(msg));
               } catch(e) {
-                console.warn(`<Binding>.send failed: ${e}`, {error: e, msg});
+                console.warn(`<Binding>._send failed: ${e}`, {error: e, msg});
               }
             },
-            addListener,
             _recv: msg => {
               /* we don't actually pass json, we use objects directly
                 try {
@@ -63,6 +62,22 @@
                   console.warn(`<Binding>.onmessage: listener failed ${e}`, {listener, error: e});
                 }
               }
+              if ( BindingState.resolvers.has(msg?.message) ) {
+                BindingState.resolvers.delete(msg?.message);
+              }
+            },
+            addListener,
+            postMessage: msg => {
+              Binding._send({message:msg});
+            },
+            set onmessage(listener) {
+              Binding.addListener(onMessageListener);
+
+              function onMessageListener({message} = {}) {
+                if ( message ) {
+                  listener(message);
+                }
+              }
             },
             ctl: (method, params, sessionId) => {
               const key = `binding${messageId++}`;
@@ -71,16 +86,28 @@
 
               BindingState.resolvers.set(key, returnReply);
 
-              Binding.send({method, params, sessionId, key}); 
+              Binding._send({method, params, sessionId, key}); 
+
+              return pr;
+            },
+            send: anything = {
+              const key = `bidi${messageId++}`;
+              let returnReply;
+              const pr = new Promise(res => returnReply = res);
+
+              BindingState.resolvers.set(key, returnReply);
+
+              Binding._send({message: anything, key});
 
               return pr;
             }
           };
+          Binding.addListener(bidiProtocol);
           Binding.addListener(generalResolver);
           Object.defineProperty(self, BINDING_NAME, { get: () => Binding });
           clearInterval(sbInterval);
           sbInterval = false;
-          Binding.send({bindingAttached:true});
+          Binding._send({bindingAttached:true});
           notifyReady(true);
           DEBUG && console.log(`binding set up`);
         }
@@ -108,6 +135,16 @@
         } else {
           DEBUG && console.info(`No replier for message: ${response}`, response);
         }
+      }
+    }
+
+    function bidiProtocol({key, message} = {}) {
+      if ( BindingState.resolvers.has(key) ) {
+        const deliver = BindingState.resolvers.get(key);
+        BindingState.resolvers.delete(key);
+        deliver(message);
+      } else {
+        BindingState.resolvers.set(message, key);
       }
     }
   }

@@ -2071,6 +2071,9 @@ export async function executeBinding({message, sessionId, connection, send, on, 
     }
     response = await connection.sessionSend(payload);
     response.key = key;
+  } else if ( !!payload.message && !!payload.key ) {
+    // send to client as bidi
+    connection.forceMeta({bidi:{message,key}});
   }
   const expression = `self.${CONFIG.BINDING_NAME}._recv(${JSON.stringify({response})})`;
   DEBUG.debugBinding && console.log(JSON.stringify({bindingCalled:{name,payload,response,executionContextId,expression}}));
