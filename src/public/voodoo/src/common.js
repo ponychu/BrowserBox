@@ -52,7 +52,7 @@ export const DEBUG = Object.freeze({
                                                 // if user media fails
   utilizeTempHackFixForIMENoKey: false,
   mode: 'prod',
-  debugKeyEvents: false,
+  debugKeyEvents: true,
   debugCommandOrder: false,
   // note on: increaseResolutionOfSmallerCanvas
     // this seems to look clearer on smaller devices when we are using a scaled up co viewport, 

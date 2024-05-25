@@ -1585,7 +1585,7 @@
 
         function sendKey(keyEvent) {
           if ( DEBUG.debugKeyEvents ) {
-            //console.info(`[sendKey]: got event: ${keyEvent.key} (${keyEvent.type.slice(3)})`, keyEvent);
+            console.info(`[sendKey]: got event: ${keyEvent.key} (${keyEvent.type.slice(3)})`, keyEvent);
           }
           const {viewState} = state;
           if ( ! ( viewState.shouldHaveFocus || document.deepActiveElement == viewState.omniBoxInput ) ) {
@@ -1827,7 +1827,7 @@
         function H(event) {
           // block if no tabs
 
-          //DEBUG.debugKeyEvents && event.type.startsWith('key') && console.info(`[H]: got key event: ${event.key} (${event.type.slice(3)})`, event);
+          DEBUG.debugKeyEvents && event.type.startsWith('key') && console.info(`[H]: got key event: ${event.key} (${event.type.slice(3)})`, event);
 
           DEBUG.HFUNCTION && console.log(`H received`, event);
           if (state.tabs.length == 0) {
