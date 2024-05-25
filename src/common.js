@@ -32,6 +32,7 @@ export const LOG_FILE = {
 
 export const DEBUG = Object.freeze({
   dontSkipOldMissingWorldsCheck: false,
+  disableInjection: true,
   disableIso: true,
   decorateFrameListWithContexts: true,
   showFrameTreeOnFrameChanges: true,
@@ -67,7 +68,8 @@ export const DEBUG = Object.freeze({
   showDebug: false,
   utilizeTempHackFixForIMENoKey: false,
   debugTyping: false,
-  logFileCommands: false,
+  debugTopTyping: true,
+  logFileCommands: true,
   windowsUses48KAudio: false,
   debugAlerts: false,
   debugModals: false,

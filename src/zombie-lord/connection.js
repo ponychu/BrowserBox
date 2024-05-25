@@ -249,7 +249,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
   AD_BLOCK_ON = adBlock;
 
   LOG_FILE.Commands = new Set([
-    ...(DEBUG.debugTyping ? [
+    ...((DEBUG.debugTyping || DEBUG.debugTopTyping) ? [
       "Input.dispatchKeyEvent",
       "Input.insertText",
     ] : []),
@@ -1412,84 +1412,95 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
         {},
         sessionId
       );
-      // Page context injection (to set values in the page's original JS execution context
-        let templatedInjectionsScroll = '';
-        // Flash emulation injection
-        if ( DEBUG.useFlashEmu ) {
-          const injectableAssetPath = getInjectableAssetPath();
-          const flashEmuScript = templatedInjections.flashEmu.default({
-            injectableAssetPath
-          });
-          templatedInjectionsScroll += flashEmuScript;
-        }
-        if ( DEBUG.useDocCustomDownloadPlugin ) {
-          const embeddingHostname = getEmbeddingHostname();
-          const pluginScript = templatedInjections.docDownloadPlugin.default({
-            embeddingHostname
-          });
-          templatedInjectionsScroll += pluginScript;
-        }
-        await send(
-          "Page.addScriptToEvaluateOnNewDocument",
-          {
-            // NOTE: NO world name to use the Page context
-            source: pageContextInjectionsScroll + templatedInjectionsScroll
-          },
-          sessionId
-        );
-      // Isolated world injection
-        let modeInjectionScroll = '';
-        if ( connection.plugins.appminifier ) {
-          modeInjectionScroll += appMinifier;
-        } 
-        if ( connection.plugins.projector ) {
-          modeInjectionScroll += projector;
-        }
-        await send(
-          "Page.addScriptToEvaluateOnNewDocument", 
-          {
-            source: [
-              saveTargetIdAsGlobal(targetId),
-              injectionsScroll,
-              modeInjectionScroll
-            ].join(''),
-            worldName: WorldName
-          },
-          sessionId
-        );
-      await send(
-        "Emulation.setDeviceMetricsOverride", 
-        connection.bounds,
-        sessionId
-      );
-      /* 
-        // notes
-          // putting here causes tab startup stability issues, better to wait to apply it later
-          // but if we're waiting then may as well just wait until we actually open devtools
-          // this means we just send from client
-        if ( DEBUG.fixDevToolsInactive && DEBUG.useActiveFocusEmulation ) {
-          // don't await it as it's very experimental
-          send(
-            "Emulation.setFocusEmulationEnabled",
+      // injection
+        // Page context injection (to set values in the page's original JS execution context
+          let templatedInjectionsScroll = '';
+          // Flash emulation injection
+          if ( DEBUG.useFlashEmu ) {
+            const injectableAssetPath = getInjectableAssetPath();
+            const flashEmuScript = templatedInjections.flashEmu.default({
+              injectableAssetPath
+            });
+            templatedInjectionsScroll += flashEmuScript;
+          }
+          if ( DEBUG.useDocCustomDownloadPlugin ) {
+            const embeddingHostname = getEmbeddingHostname();
+            const pluginScript = templatedInjections.docDownloadPlugin.default({
+              embeddingHostname
+            });
+            templatedInjectionsScroll += pluginScript;
+          }
+        if ( ! DEBUG.disableInjection ) {
+          await send(
+            "Page.addScriptToEvaluateOnNewDocument",
             {
-              enabled: true, 
+              // NOTE: NO world name to use the Page context
+              source: `console.log("i am page"); ` + pageContextInjectionsScroll + templatedInjectionsScroll,
+              runImmediately: CONFIG.runInjectionsImmediately,
             },
             sessionId
           );
+          // Isolated world injection
+            let modeInjectionScroll = '';
+            if ( connection.plugins.appminifier ) {
+              modeInjectionScroll += appMinifier;
+            } 
+            if ( connection.plugins.projector ) {
+              modeInjectionScroll += projector;
+            }
+            await send(
+              "Page.addScriptToEvaluateOnNewDocument", 
+              {
+                source: [
+                  `console.log("I am isolated world")`,
+                  saveTargetIdAsGlobal(targetId),
+                  injectionsScroll,
+                  modeInjectionScroll
+                ].join(';'),
+                worldName: executionContextName,
+                runImmediately: CONFIG.runInjectionsImmediately,
+              },
+              sessionId
+            );
         }
-      */
-      await send(
-        "Emulation.setScrollbarsHidden",
-        {hidden:connection.isMobile || false},
-        sessionId
-      );
-      const {windowId} = await send("Browser.getWindowForTarget", {targetId});
-      connection.latestWindowId = windowId;
-      let {width,height} = connection.bounds;
-      if ( DEBUG.useNewAsgardHeadless ) {
-        height += 80;
-      }
-      await send("Browser.setWindowBounds", {bounds:{width,height},windowId})
+      // device form factor
+        if ( targetInfo.type == 'page' ) {
+          await send(
+            "Emulation.setDeviceMetricsOverride", 
+            connection.bounds,
+            sessionId
+          );
+        }
+        /* 
+          // notes
+            // putting here causes tab startup stability issues, better to wait to apply it later
+            // but if we're waiting then may as well just wait until we actually open devtools
+            // this means we just send from client
+          if ( DEBUG.fixDevToolsInactive && DEBUG.useActiveFocusEmulation ) {
+            // don't await it as it's very experimental
+            send(
+              "Emulation.setFocusEmulationEnabled",
+              {
+                enabled: true, 
+              },
+              sessionId
+            );
+          }
+        */
+        await send(
+          "Emulation.setScrollbarsHidden",
+          {hidden:connection.isMobile || false},
+          sessionId
+        );
+        if ( targetInfo.type == "page" ) {
+          const {windowId} = await send("Browser.getWindowForTarget", {targetId});
+          connection.latestWindowId = windowId;
+          let {width,height} = connection.bounds;
+          if ( DEBUG.useNewAsgardHeadless ) {
+            height += 80;
+          }
+          await send("Browser.setWindowBounds", {bounds:{width,height},windowId})
+        }
       //id = await overrideNewtab(connection.zombie, sessionId, id);
       if ( AD_BLOCK_ON ) {
         await blockAds(/*connection.zombie, sessionId*/);
