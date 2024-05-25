@@ -102,7 +102,9 @@ export const DEBUG = Object.freeze({
   showViewportChanges: false,
   showResizeEvents: false,
   logRestartCast: false,
+  neverShowErrorSources: true,
   get showErrorSources() {
+    if ( this.neverShowErrorSources ) return false;
     return this.logFileCommands || this.commands || false;
   },
   showNoSessionIdWarnings: false,
