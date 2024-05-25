@@ -41,7 +41,7 @@ export const DEBUG = Object.freeze({
   debugReloadLoop: false,
   alwaysStartShutdownTimer: true,
   debugViewports: false,
-  noteCallStackInLog: true,
+  noteCallStackInLog: false,
   showNoTargets: false,
   debugUserAgent: false,
   showSkippedCommandsAfterViewportChangeCheck: false,
@@ -154,7 +154,7 @@ export const DEBUG = Object.freeze({
   chooseFastest: !process.env.TORBB && true,
   logCastOutOfOrderFrames: false,
   noSecurityHeaders: false,
-  mode: 'prod', // prod or dev (whether to bundle frontend code or not)
+  mode: 'dev', // prod or dev (whether to bundle frontend code or not)
   showOrigin: false,
   useDocCustomDownloadPlugin: true,
   useFlashEmu: process.env.USE_FLASH == 'true' ? true : false,

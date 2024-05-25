@@ -87,7 +87,7 @@ export const DEBUG = Object.freeze({
   debugBitmapCoordConversion: false,
   debugEventChains: false,
   debugEventQueue: false,
-  HFUNCTION: false,
+  HFUNCTION: true,
   debugCopyPaste: false,
   trackLoading: true,
   debugAudio: false,
