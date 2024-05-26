@@ -61,6 +61,7 @@
         }
       }
       const changedTarget = self.focusEl != focusDestination;
+      // getting an undefined error on focusDestination in the line below
       const newType = focusDestination.getAttribute('type');
       const inputmode = focusDestination.getAttribute('inputmode');
       const newIsTextareaOrContenteditable = focusDestination.matches(TEXTAREA_OR_CONTENTEDITABLE);
