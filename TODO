@@ -1,1 +1,3 @@
-- need a way to not be connected to the app if on mobile and the page is not active. Otherwise mobile browsers randomly connect and disconnect creating viewport shock
+- fix reload bug
+- make top level listeners good
+
