@@ -524,11 +524,11 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
     addSession(targetId, sessionId);
     checkSetup.set(targetId, {val:MAX_TRIES_TO_LOAD, checking:false, needsReload: StartupTabs.has(targetId)});
     connection.meta.push({attached});
-    TabReloads.set(sessionId, RELOAD_BUDGET);
     // we always size when we attach, otherwise they just go to screen size
     // which might be bigger than the lowest common screen dimensions for the clients
     // so they will call a resize anyway, so we just anticipate here
     await setupTab({attached});
+    TabReloads.set(sessionId, RELOAD_BUDGET);
     if ( StartupTabs.has(targetId) ) {
       console.log(`RAS 2`);
       reloadAfterSetup(sessionId);
@@ -1884,6 +1884,9 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
               console.log(`RAS 7`, worlds, sessionId);
               reloadAfterSetup(sessionId);
             }
+          } else {
+            TabReloads.set(sessionId, RELOAD_BUDGET);
+            reloadAfterSetup(sessionId);
           }
         } else {
           TabReloads.delete(sessionId);
