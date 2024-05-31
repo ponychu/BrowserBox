@@ -521,6 +521,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
     addSession(targetId, sessionId);
     checkSetup.set(targetId, {val:MAX_TRIES_TO_LOAD, checking:false, needsReload: StartupTabs.has(targetId)});
     connection.meta.push({attached});
+    TabReloads.set(sessionId, RELOAD_BUDGET);
     // we always size when we attach, otherwise they just go to screen size
     // which might be bigger than the lowest common screen dimensions for the clients
     // so they will call a resize anyway, so we just anticipate here
@@ -1055,6 +1056,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
       const topFrame = !parentId;
       if ( !!topFrame && (!! url || !! unreachableUrl) ) {
         clearLoading(sessionId);
+        TabReloads.set(sessionId, RELOAD_BUDGET);
         const targetId = sessions.get(sessionId);
         if ( checkSetup.has(targetId) ) {
           // we could check this in a couple ms to see if we still have check setup and 
@@ -1862,14 +1864,26 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
           console.log({targetId, sessionId});
         }
 
+        // wait up to 7 seconds for some worlds to appear
+        await untilTrueOrTimeout(() => !connection.worlds.get(sessionId), 7);
         const worlds = connection.worlds.get(sessionId);
         DEBUG.showWorlds && console.log('worlds at session send', worlds);
 
         if ( ! worlds ) {
-          DEBUG.val && console.log("reloading because no worlds we can access yet");
-          console.log(`RAS 4`);
-          reloadAfterSetup(sessionId);
+          if ( TabReloads.has(sessionId) ) {
+            let reloadBudget = TabReloads.get(sessionId);
+            if ( ! Number.isInteger(reloadBudget) ) {
+              console.error(`Reload budget must be integer, but it was:`, reloadBudget);
+            }
+            reloadBudget--;
+            TabReloads.set(sessionId, reloadBudget);
+            if (reloadBudget) {
+              DEBUG.val && console.log("reloading because no worlds we can access yet");
+              reloadAfterSetup(sessionId);
+            }
+          }
         } else {
+          TabReloads.delete(sessionId);
           DEBUG.val && console.log("Tab is loaded",sessionId);
         }
         connection.activeTarget = targetId;
