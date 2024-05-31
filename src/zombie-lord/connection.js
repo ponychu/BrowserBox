@@ -100,7 +100,7 @@ const templatedInjections = {
 };
 
 const docViewerSecret = process.env.DOCS_KEY;
-const heightAdjust = process.platform == 'darwin' ? 130 : 80;
+const heightAdjust = process.platform == 'darwin' ? 80 : 80;
 const MAX_TRIES_TO_LOAD = 2;
 const TAB_LOAD_WAIT = 300;
 const RECONNECT_MS = 5000;
@@ -500,13 +500,13 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
           obj.checking = true;
           if ( !obj.tabSetup ) {
             obj.needsReload = true;
+            console.log(`RAS 1`);
             reloadAfterSetup(sessionId);
           }
         } else {
           checkSetup.delete(targetId);
           DEBUG.worldDebug && consolelog(`Our tab is loaded!`, targetInfo);
         }
-        //reloadAfterSetup(sessionId);
       }
     }
   });
@@ -526,6 +526,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
     // so they will call a resize anyway, so we just anticipate here
     await setupTab({attached});
     if ( StartupTabs.has(targetId) ) {
+      console.log(`RAS 2`);
       reloadAfterSetup(sessionId);
     }
     /**
@@ -1536,6 +1537,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
       console.warn("Error setting up", e, targetId, sessionId);
     }
     settingUp.delete(targetId);
+    console.log(`RAS 3`);
     reloadAfterSetup(sessionId);
   }
 
@@ -1865,6 +1867,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
 
         if ( ! worlds ) {
           DEBUG.val && console.log("reloading because no worlds we can access yet");
+          console.log(`RAS 4`);
           reloadAfterSetup(sessionId);
         } else {
           DEBUG.val && console.log("Tab is loaded",sessionId);
@@ -2006,6 +2009,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
         //DEBUG.coords && command.name.startsWith("Emulation") && console.log('Emulation session send 2', command, {sessionId})
         const r = await send(command.name, command.params, sessionId);
         if ( needsReload ) {
+          console.log(`RAS 5`);
           reloadAfterSetup(sessionId);
         }
         if ( requiresTask ) {
@@ -2242,6 +2246,7 @@ async function updateAllTargetsToUserAgent({mobile, connection}) {
   }
   list = [...(new Set([...list]))];
   for ( const sessionId of list ) {
+    console.log(`RAS 6`, sessionId);
     connection.reloadAfterSetup(sessionId);
   }
 }
