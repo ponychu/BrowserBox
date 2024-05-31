@@ -320,6 +320,7 @@ function translator(e, handled = {type:'case'}) {
                   id: Math.max(Math.min(currentIndex + (e.action == "back" ? -1 : +1 ), entries.length-1), 0)
                 };
               */
+              console.log({intendedEntry});
               DEBUG.debugHistory && console.log({historyEntries:entries, currentIndex, intendedEntry});
               if ( intendedEntry ) {
                 return {
