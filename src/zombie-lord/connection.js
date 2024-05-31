@@ -100,7 +100,7 @@ const templatedInjections = {
 };
 
 const docViewerSecret = process.env.DOCS_KEY;
-const heightAdjust = process.platform == 'darwin' ? 130 : 80;
+const heightAdjust = process.platform == 'darwin' ? 80 : 80;
 const MAX_TRIES_TO_LOAD = 2;
 const TAB_LOAD_WAIT = 300;
 const RECONNECT_MS = 5000;
@@ -1865,7 +1865,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
 
         if ( ! worlds ) {
           DEBUG.val && console.log("reloading because no worlds we can access yet");
-          reloadAfterSetup(sessionId);
+          //reloadAfterSetup(sessionId);
         } else {
           DEBUG.val && console.log("Tab is loaded",sessionId);
         }
