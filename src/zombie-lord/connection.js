@@ -103,9 +103,11 @@ const docViewerSecret = process.env.DOCS_KEY;
 const heightAdjust = process.platform == 'darwin' ? 80 : 80;
 const MAX_TRIES_TO_LOAD = 2;
 const TAB_LOAD_WAIT = 300;
+const RELOAD_BUDGET = 2;
 const RECONNECT_MS = 5000;
 const WAIT_FOR_DOWNLOAD_BEGIN_DELAY = 5000;
 const WAIT_FOR_COALESCED_NETWORK_EVENTS = 1000
+const TabReloads = new Map();
 
 import {
   deskUA_Mac_FF,
@@ -466,6 +468,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
     if ( checkSetup.has(targetId) && targetInfo.url !== 'about:blank' ) {
       const sessionId = sessions.get(targetId);
       if ( sessionId ) {
+        TabReloads.set(sessionId, RELOAD_BUDGET);
         const obj = checkSetup.get(targetId);
         await sleep(TAB_LOAD_WAIT);
         const worlds = connection.worlds.get(sessionId);
@@ -538,7 +541,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
       const worlds = connection.worlds.get(sessionId);
       DEBUG.val && console.log('worlds at attached', worlds);
       if ( ! worlds ) {
-        await send("Page.reload", {}, sessionId);
+        //await send("Page.reload", {}, sessionId);
       }
     **/
     DEBUG.val && consolelog('attached 2', targetInfo);
@@ -1056,7 +1059,6 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
       const topFrame = !parentId;
       if ( !!topFrame && (!! url || !! unreachableUrl) ) {
         clearLoading(sessionId);
-        TabReloads.set(sessionId, RELOAD_BUDGET);
         const targetId = sessions.get(sessionId);
         if ( checkSetup.has(targetId) ) {
           // we could check this in a couple ms to see if we still have check setup and 
@@ -1865,8 +1867,8 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
         }
 
         // wait up to 7 seconds for some worlds to appear
-        await untilTrueOrTimeout(() => !connection.worlds.get(sessionId), 7);
-        const worlds = connection.worlds.get(sessionId);
+        let worlds;
+        await untilTrueOrTimeout(() => worlds = connection.worlds.get(sessionId), 7);
         DEBUG.showWorlds && console.log('worlds at session send', worlds);
 
         if ( ! worlds ) {
@@ -1879,6 +1881,7 @@ export default async function Connect({port}, {adBlock:adBlock = DEBUG.adBlock, 
             TabReloads.set(sessionId, reloadBudget);
             if (reloadBudget) {
               DEBUG.val && console.log("reloading because no worlds we can access yet");
+              console.log(`RAS 7`, worlds, sessionId);
               reloadAfterSetup(sessionId);
             }
           }

@@ -38,10 +38,10 @@ export const DEBUG = Object.freeze({
   decorateFrameListWithContexts: true,
   showFrameTreeOnFrameChanges: true,
   debugNewWorlds: false,
-  neverShowErrorSources: false,
+  neverShowErrorSources: true,
   debugReloadLoop: false,
   alwaysStartShutdownTimer: true,
-  debugViewports: true,
+  debugViewports: false,
   noteCallStackInLog: true,
   showNoTargets: false,
   debugUserAgent: false,
@@ -103,6 +103,7 @@ export const DEBUG = Object.freeze({
   showResizeEvents: false,
   logRestartCast: false,
   get showErrorSources() {
+    if ( this.neverShowErrorSources ) return false;
     return this.logFileCommands || this.commands || false;
   },
   showNoSessionIdWarnings: false,
@@ -196,7 +197,7 @@ export const DEBUG = Object.freeze({
   shotDebug: false,
   noShot: false,
   dev: false,
-  val: 1,
+  val: 0,
   low: 1,
   med: 3,
   high: 5
