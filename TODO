@@ -1,1 +1,9 @@
+Issues seen during startup on macOS:
+
+- backgrounded tab fully works (favicon and cast) but active tab is completely locked (no favicon and no cast). 4/8 times
+- browser crashes immediately, if client connects too 'soon' after tabs set up 3/8 times
+- forgrounded tab has valid cast but no injection (no favicon, no cursor), and backgrounded tab is completely locked (no fav, no cast). 1/8
+
+seems like there are race conditions regarding the set up. we should create a more stable set up code path to ameliorate this
+
 - need a way to not be connected to the app if on mobile and the page is not active. Otherwise mobile browsers randomly connect and disconnect creating viewport shock
